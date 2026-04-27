@@ -6,7 +6,7 @@
     "license": "UNLICENSED",
     "packageManager": "pnpm@10.33.2",
     "scripts": {
-        "build": "nest build",
+        "build": "pnpm prisma generate && nest build",
         "format": "prettier --write \"src/**/*.ts\"",
         "format:check": "prettier --check \"src/**/*.ts\"",
         "start": "nest start",
