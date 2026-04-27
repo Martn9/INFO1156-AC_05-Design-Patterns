@@ -32,7 +32,8 @@ La base de datos es fija en `sqlite.db`
 
 Para levantar todo el sistema con Docker:
 
-1. `make run`
+1. `make setup`
+2. `make run`
 
 Este comando construye la imagen, instala dependencias dentro del contenedor, aplica migraciones Prisma, genera el cliente y arranca NestJS en modo watch.
 
@@ -42,7 +43,7 @@ La aplicación queda disponible en:
 
 - `http://localhost:3000`
 - `http://localhost:3000/docs`
-- `http://localhost:5555` (Prisma Studio)
+- `http://localhost:5555` (Prisma Studio - Database Manager)
 
 Comandos útiles:
 

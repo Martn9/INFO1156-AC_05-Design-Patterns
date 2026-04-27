@@ -1,4 +1,4 @@
-.PHONY: install setup dev build lint format format-check test test-watch test-cov test-e2e clean docker-build run stop logs
+.PHONY: install setup stup dev build lint format format-check test test-watch test-cov test-e2e clean docker-build run stop logs check-tools
 
 DOCKER_IMAGE=design-patterns:dev
 DOCKER_CONTAINER=design-patterns-app
@@ -9,7 +9,17 @@ DOCKER_DIST_VOL=design_patterns_dist
 install:
 	pnpm install
 
-setup:
+check-tools:
+	@if ! command -v docker >/dev/null 2>&1; then \
+		echo "Docker no esta instalado. Instalalo aqui: https://docs.docker.com/engine/install/"; \
+		exit 1; \
+	fi
+	@if ! command -v pnpm >/dev/null 2>&1; then \
+		echo "pnpm no esta instalado. Instalalo aqui: https://pnpm.io/installation"; \
+		exit 1; \
+	fi
+
+setup: check-tools
 	pnpm install
 	pnpm prisma migrate deploy
 	pnpm prisma generate
