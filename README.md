@@ -49,3 +49,23 @@ Comandos útiles:
 
 - `make stop` para detener el contenedor
 - `make logs` para ver logs en tiempo real
+
+----
+
+## 1. Patrón Estructural: Adapter (Adaptador)
+
+**Implementado por:** Martin 
+**Archivos:** `posts.controller.ts`, `moderation.adapter.ts` (Nuevo), `posts.module.ts`
+
+**Problema:**
+El método `createComment` en `PostsController`[cite: 2] estaba fuertemente acoplado a `legacy-moderation.client.ts`[cite: 1]. Como la API legacy devuelve tipos mixtos 
+(`string`, `number` u  `object`)[cite: 1], el controlador requería un bloque `if/else` gigante para traducir la respuesta, violando el Principio de Responsabilidad Única.
+
+**Solución:**
+Se creó el servicio inyectable `ModerationAdapter` para envolver la llamada al cliente externo. Este adaptador aisla la lógica condicional y 
+le expone al controlador una interfaz limpia y tipada (solo devuelve un `isBlocked: boolean` y la `metadata`).
+
+**Beneficios:**
+- **Desacoplamiento:** El controlador ya no sabe cómo funciona el sistema legacy.
+- **Código Limpio:** Se eliminó la complejidad ciclomática (`if/else`) del controlador[cite: 2].
+- **Mantenibilidad:** Si cambia el proveedor de moderación, solo se modifica el adaptador.

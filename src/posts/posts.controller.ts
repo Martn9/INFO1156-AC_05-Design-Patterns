@@ -1,3 +1,5 @@
+import { ModerationAdapter } from "@/posts/moderation.adapter"
+ 
 import {
     BadRequestException,
     Body,
@@ -46,6 +48,7 @@ export class PostsController {
     constructor(
         private readonly postsService: PostsService,
         private readonly prisma: PrismaService,
+        private readonly moderationAdapter: ModerationAdapter
     ) {}
 
     @Post()
@@ -223,23 +226,10 @@ export class PostsController {
             throw new BadRequestException("Comment too short")
         }
 
-        // Cliente legacy: devuelve tipos mixtos (string/number/object).
-        const moderation = legacyModerationApi.review(body.content)
+const moderationResult = this.moderationAdapter.reviewContent(body.content);
 
-        let blocked = false
-
-        if (moderation === "BLOCK") {
-            blocked = true
-        } else if (typeof moderation === "number") {
-            blocked = moderation < 1
-        } else if (typeof moderation === "object") {
-            blocked = !("pass" in moderation && moderation.pass)
-        } else if (moderation === "OK") {
-            blocked = false
-        }
-
-        if (blocked) {
-            throw new BadRequestException("Comment blocked by moderation")
+        if (moderationResult.isBlocked) {
+            throw new BadRequestException("Comment blocked by moderation");
         }
 
         // Se persiste la información en la base de datos
@@ -262,7 +252,7 @@ export class PostsController {
             created.content.length > 60 ? 80 : 40,
             false,
             "es",
-            { moderation, source: "legacy" },
+            { moderation: moderationResult.metadata, source: "legacy-adapter" },
         )
 
         logDomainEvent("comment.created", { postId: id, commentId: created.id })
