@@ -24,24 +24,7 @@ import {
     CreatePostDto,
     FeedQueryDto,
 } from "@/posts/posts.dtos"
-
-const logDomainEvent = (
-    eventName: string,
-    payload: Record<string, unknown>,
-) => {
-    console.log(`[event:${eventName}]`, payload)
-}
-
-const fakeSendNotification = (
-    type: string,
-    payload: Record<string, unknown>,
-) => {
-    console.log(`[notify:${type}]`, payload)
-}
-
-const fakeRecomputeSomething = (postId: number) => {
-    console.log(`[recompute] postId=${postId}`)
-}
+import { PostEventsEmitter } from "@/posts/observers/post-events.emitter"
 
 @Controller("api/posts")
 export class PostsController {
@@ -50,6 +33,7 @@ export class PostsController {
         private readonly prisma: PrismaService,
         private readonly moderationAdapter: ModerationAdapter,
         private readonly feedSortContext: FeedSortContext,  
+        private readonly postEventsEmitter: PostEventsEmitter,
     ) {}
 
     @Post()
@@ -66,12 +50,11 @@ export class PostsController {
 
         const created = await this.postsService.create(body)
 
-        logDomainEvent("post.created", {
+        this.postEventsEmitter.emit({
+            eventName: "post.created",
             postId: created.id,
-            title: created.title,
+            payload: { postId: created.id, title: created.title },
         })
-        fakeSendNotification("post", { postId: created.id })
-        fakeRecomputeSomething(created.id)
 
         return {
             ok: true,
@@ -229,9 +212,11 @@ const moderationResult = this.moderationAdapter.reviewContent(body.content);
             { moderation: moderationResult.metadata, source: "legacy-adapter" },
         )
 
-        logDomainEvent("comment.created", { postId: id, commentId: created.id })
-        fakeSendNotification("comment", { postId: id })
-        fakeRecomputeSomething(id)
+        this.postEventsEmitter.emit({
+            eventName: "comment.created",
+            postId: id,
+            payload: { postId: id, commentId: created.id },
+        })
 
         return {
             message: "comment_created",
@@ -277,9 +262,11 @@ const moderationResult = this.moderationAdapter.reviewContent(body.content);
             { from: "manual", r: like.reactionType },
         )
 
-        logDomainEvent("like.created", { postId: id, likeId: like.id })
-        fakeSendNotification("like", { postId: id, reactionType })
-        fakeRecomputeSomething(id)
+        this.postEventsEmitter.emit({
+            eventName: "like.created",
+            postId: id,
+            payload: { postId: id, likeId: like.id, reactionType },
+        })
 
         return {
             success: true,
