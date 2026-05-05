@@ -1,5 +1,5 @@
 import { ModerationAdapter } from "@/posts/moderation.adapter"
- 
+import { FeedSortContext } from "@/posts/strategies/feed-sort.context"
 import {
     BadRequestException,
     Body,
@@ -48,7 +48,8 @@ export class PostsController {
     constructor(
         private readonly postsService: PostsService,
         private readonly prisma: PrismaService,
-        private readonly moderationAdapter: ModerationAdapter
+        private readonly moderationAdapter: ModerationAdapter,
+        private readonly feedSortContext: FeedSortContext,  
     ) {}
 
     @Post()
@@ -137,39 +138,12 @@ export class PostsController {
                 tags,
                 metadata,
                 mode,
+                
             )
         })
 
-        let sorted = [...mappedPosts]
-
-        // Ranking inline por modo
-        // Esto define la forma de ordenar en base al filtro
-        switch (mode) {
-            case "latest":
-                sorted = sorted.sort(
-                    (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
-                )
-                break
-            case "mostLiked":
-                sorted = sorted.sort((a, b) => b.likesCount - a.likesCount)
-                break
-            case "mostCommented":
-                sorted = sorted.sort(
-                    (a, b) => b.commentsCount - a.commentsCount,
-                )
-                break
-            case "relevance":
-                sorted = sorted.sort(
-                    (a, b) => b.relevanceScore - a.relevanceScore,
-                )
-                break
-            default:
-                sorted = sorted.sort(
-                    (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
-                )
-                break
-        }
-
+        
+        const sorted = this.feedSortContext.sort(mode, mappedPosts) 
         return {
             mode,
             count: sorted.length,
