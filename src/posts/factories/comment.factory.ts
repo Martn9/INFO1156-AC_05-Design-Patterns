@@ -1,4 +1,4 @@
-import { CommentEntity } from '../entities/comment.entity';
+import { CommentEntity } from "../entities/comment.entity"
 
 export class CommentFactory {
     static create(dbRecord: any, moderationMetadata?: any): CommentEntity {
@@ -13,7 +13,7 @@ export class CommentFactory {
             dbRecord.content.length > 60 ? 80 : 40, // lógica de score
             false, // isEdited
             "es", // idioma
-            { moderation: moderationMetadata, source: "legacy-adapter" }
-        );
+            { moderation: moderationMetadata, source: "legacy-adapter" },
+        )
     }
 }

@@ -1,5 +1,5 @@
-import { CommentFactory } from './factories/comment.factory';
-import { PostFactory } from './factories/post.factory';
+import { CommentFactory } from "./factories/comment.factory"
+import { PostFactory } from "./factories/post.factory"
 import { ModerationAdapter } from "@/posts/moderation.adapter"
 import { FeedSortContext } from "@/posts/strategies/feed-sort.context"
 import {
@@ -13,10 +13,7 @@ import {
     Post,
     Query,
 } from "@nestjs/common"
-import { CommentEntity } from "@/posts/entities/comment.entity"
 import { LikeEntity } from "@/posts/entities/like.entity"
-import { PostEntity } from "@/posts/entities/post.entity"
-import { legacyModerationApi } from "@/posts/legacy-moderation.client"
 import { PrismaService } from "@/prisma/prisma.service"
 
 import { PostsService } from "@/posts/posts.service"
@@ -34,7 +31,7 @@ export class PostsController {
         private readonly postsService: PostsService,
         private readonly prisma: PrismaService,
         private readonly moderationAdapter: ModerationAdapter,
-        private readonly feedSortContext: FeedSortContext,  
+        private readonly feedSortContext: FeedSortContext,
         private readonly postEventsEmitter: PostEventsEmitter,
     ) {}
 
@@ -85,9 +82,11 @@ export class PostsController {
             },
         })
 
-        const mappedPosts = posts.map((post) => PostFactory.createFromFeed(post, mode));
-        
-        const sorted = this.feedSortContext.sort(mode, mappedPosts) 
+        const mappedPosts = posts.map((post) =>
+            PostFactory.createFromFeed(post, mode),
+        )
+
+        const sorted = this.feedSortContext.sort(mode, mappedPosts)
         return {
             mode,
             count: sorted.length,
@@ -107,9 +106,9 @@ export class PostsController {
             orderBy: { createdAt: "desc" },
         })
 
-        const entities = comments.map(
-            (comment) => CommentFactory.create(comment)
-        );
+        const entities = comments.map((comment) =>
+            CommentFactory.create(comment),
+        )
         return {
             total_comments: entities.length,
             comments: entities,
@@ -130,10 +129,12 @@ export class PostsController {
             throw new BadRequestException("Comment too short")
         }
 
-const moderationResult = this.moderationAdapter.reviewContent(body.content);
+        const moderationResult = this.moderationAdapter.reviewContent(
+            body.content,
+        )
 
         if (moderationResult.isBlocked) {
-            throw new BadRequestException("Comment blocked by moderation");
+            throw new BadRequestException("Comment blocked by moderation")
         }
 
         // Se persiste la información en la base de datos
@@ -145,7 +146,7 @@ const moderationResult = this.moderationAdapter.reviewContent(body.content);
             },
         })
 
-        const entity = CommentFactory.create(created, moderationResult.metadata);
+        const entity = CommentFactory.create(created, moderationResult.metadata)
 
         this.postEventsEmitter.emit({
             eventName: "comment.created",

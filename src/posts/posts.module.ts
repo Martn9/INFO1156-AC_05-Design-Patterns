@@ -28,7 +28,6 @@ import { RecomputeObserver } from "@/posts/observers/recompute.observer"
         DomainLoggerObserver,
         NotificationObserver,
         RecomputeObserver,
-        
     ],
 })
 export class PostsModule {}
