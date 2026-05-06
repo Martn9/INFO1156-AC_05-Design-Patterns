@@ -1,3 +1,5 @@
+import { CommentFactory } from './factories/comment.factory';
+import { PostFactory } from './factories/post.factory';
 import { ModerationAdapter } from "@/posts/moderation.adapter"
 import { FeedSortContext } from "@/posts/strategies/feed-sort.context"
 import {
@@ -83,48 +85,7 @@ export class PostsController {
             },
         })
 
-        const mappedPosts = posts.map((post) => {
-            const likesCount = post.likes.reduce(
-                (sum, like) => sum + like.weight,
-                0,
-            )
-            const commentsCount = post.comments.length
-            // 36_000_00 = 1 hora en milisegundos.
-            const hoursSinceCreated =
-                (Date.now() - new Date(post.createdAt).getTime()) / 36_000_00
-            const relevanceScore =
-                likesCount * 2 +
-                commentsCount * 3 -
-                Math.floor(hoursSinceCreated)
-
-            const tags = post.title.split(" ").filter((word) => word.length > 4)
-            const metadata = {
-                likesWeights: post.likes.map((like) => like.weight),
-                commentLengths: post.comments.map(
-                    (comment) => comment.content.length,
-                ),
-                hourOfCreate: new Date(post.createdAt).getHours(),
-            }
-
-            return new PostEntity(
-                post.id,
-                post.title,
-                post.description,
-                post.imageUrl,
-                post.createdAt,
-                post.updatedAt,
-                likesCount,
-                commentsCount,
-                relevanceScore,
-                relevanceScore > 20,
-                "feed-controller",
-                tags,
-                metadata,
-                mode,
-                
-            )
-        })
-
+        const mappedPosts = posts.map((post) => PostFactory.createFromFeed(post, mode));
         
         const sorted = this.feedSortContext.sort(mode, mappedPosts) 
         return {
@@ -147,22 +108,8 @@ export class PostsController {
         })
 
         const entities = comments.map(
-            (comment) =>
-                new CommentEntity(
-                    comment.id,
-                    comment.postId,
-                    comment.content,
-                    comment.createdAt,
-                    comment.updatedAt,
-                    comment.source,
-                    "approved",
-                    comment.content.length > 80 ? 70 : 45,
-                    comment.content.length % 2 === 0,
-                    "es",
-                    { chars: comment.content.length, source: comment.source },
-                ),
-        )
-
+            (comment) => CommentFactory.create(comment)
+        );
         return {
             total_comments: entities.length,
             comments: entities,
@@ -198,19 +145,7 @@ const moderationResult = this.moderationAdapter.reviewContent(body.content);
             },
         })
 
-        const entity = new CommentEntity(
-            created.id,
-            created.postId,
-            created.content,
-            created.createdAt,
-            created.updatedAt,
-            created.source,
-            "approved",
-            created.content.length > 60 ? 80 : 40,
-            false,
-            "es",
-            { moderation: moderationResult.metadata, source: "legacy-adapter" },
-        )
+        const entity = CommentFactory.create(created, moderationResult.metadata);
 
         this.postEventsEmitter.emit({
             eventName: "comment.created",
