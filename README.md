@@ -94,3 +94,26 @@ Además, se creó `FeedSortContext` para delegar dinámicamente el algoritmo de 
 - **Mayor mantenibilidad:** Cada estrategia tiene una única responsabilidad.
 - **Extensibilidad:** Se pueden agregar nuevos criterios de ranking sin modificar el controlador.
 - **Código más limpio:** Se eliminó el `switch` gigante dentro de `getFeed`.
+
+## 3. Patrón de Comportamiento: Observer
+
+**Implementado por:** Cristoper 
+**Archivos:** `posts.controller.ts`, `posts.module.ts`, `observers/post-event.interface.ts` (Nuevo), `observers/post-events.emitter.ts` (Nuevo), `observers/domain-logger.observer.ts` (Nuevo), `observers/notification.observer.ts` (Nuevo), `observers/recompute.observer.ts` (Nuevo)
+
+**Problema:**  
+El controlador `PostsController` contenía tres funciones sueltas (`logDomainEvent`, `fakeSendNotification`, `fakeRecomputeSomething`) que se repetían en cada endpoint (`create`, `createComment`, `addLike`).  
+Esto generaba código duplicado, alto acoplamiento y violaba el Principio de Responsabilidad Única, ya que el controlador no debería encargarse de notificaciones ni trazas internas.
+
+**Solución:**  
+Se implementó el patrón **Observer**, donde el controlador solo emite un evento a través de `PostEventsEmitter`, y cada observer reacciona de forma independiente:
+
+- `DomainLoggerObserver` → registra el evento en consola
+- `NotificationObserver` → simula el envío de notificaciones
+- `RecomputeObserver` → simula el recálculo de métricas
+
+**Beneficios:**
+- **Desacoplamiento:** El controlador no sabe quién reacciona a los eventos, solo los emite.
+- **Código Limpio:** Se eliminaron las funciones sueltas y el código duplicado en cada endpoint.
+- **Extensibilidad:** Se pueden agregar nuevos observers sin modificar el controlador.
+- **Responsabilidad Única:** Cada observer tiene una única tarea definida.
+
