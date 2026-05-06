@@ -69,3 +69,28 @@ le expone al controlador una interfaz limpia y tipada (solo devuelve un `isBlock
 - **Desacoplamiento:** El controlador ya no sabe cómo funciona el sistema legacy.
 - **Código Limpio:** Se eliminó la complejidad ciclomática (`if/else`) del controlador[cite: 2].
 - **Mantenibilidad:** Si cambia el proveedor de moderación, solo se modifica el adaptador.
+
+## 2. Patrón de Comportamiento: Strategy
+
+**Implementado por:** Gerlac  
+**Archivos:** `posts.controller.ts`, `posts.module.ts`, `strategies/feed-sort.strategy.ts` (Nuevo), `strategies/feed-sort.context.ts` (Nuevo)
+
+**Problema:**  
+El método `getFeed` en `PostsController` contenía un bloque `switch` con múltiples criterios de ordenamiento (`latest`, `mostLiked`, `mostCommented`, `relevance`).  
+Esto generaba alto acoplamiento y hacía que el controlador concentrara demasiada lógica de negocio, dificultando agregar nuevos modos de ranking sin modificar directamente el código existente.
+
+**Solución:**  
+Se implementó el patrón de diseño **Strategy**, separando cada algoritmo de ordenamiento en estrategias independientes:
+
+- `LatestFeedSortStrategy`
+- `MostLikedFeedSortStrategy`
+- `MostCommentedFeedSortStrategy`
+- `RelevanceFeedSortStrategy`
+
+Además, se creó `FeedSortContext` para delegar dinámicamente el algoritmo de ordenamiento según el modo solicitado por el feed.
+
+**Beneficios:**
+- **Menor acoplamiento:** El controlador ya no contiene lógica de ordenamiento.
+- **Mayor mantenibilidad:** Cada estrategia tiene una única responsabilidad.
+- **Extensibilidad:** Se pueden agregar nuevos criterios de ranking sin modificar el controlador.
+- **Código más limpio:** Se eliminó el `switch` gigante dentro de `getFeed`.
