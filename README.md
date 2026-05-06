@@ -117,3 +117,15 @@ Se implementó el patrón **Observer**, donde el controlador solo emite un event
 - **Extensibilidad:** Se pueden agregar nuevos observers sin modificar el controlador.
 - **Responsabilidad Única:** Cada observer tiene una única tarea definida.
 
+
+## 4. Patrón Creacional: Factory (Fábrica) y Principios SOLID
+
+| Responsable | Patrones / Principios Aplicados | Archivos Modificados / Creados |
+| :--- | :--- | :--- |
+| **Martin** | **Factory** (Creacional), **SRP** (SOLID) | `posts.controller.ts`, `factories/comment.factory.ts`, `factories/post.factory.ts` |
+
+### Resumen de la implementación
+
+| El Problema |  La Solución |  Beneficios |
+| :--- | :--- | :--- |
+| El controlador (`PostsController`) instanciaba entidades directamente, mezclando lógica HTTP, reglas de negocio matemáticas y creación de objetos (Violación del SRP). | Se implementó el patrón **Factory** para encapsular la creación. Además, se separó la lógica de negocio en una clase experta (`FeedMetricsCalculator`), respetando el **Principio de Responsabilidad Única (SRP)**. | **1. Desacoplamiento:** Las reglas de negocio pueden cambiar sin afectar a la fábrica ni al controlador.<br>**2. Código Limpio:** El controlador delegó las responsabilidades y redujo su complejidad. |
